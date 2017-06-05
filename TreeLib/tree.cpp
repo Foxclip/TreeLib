@@ -3,26 +3,23 @@
 #include <algorithm>
 #include <vector>
 #include "tree.h"
- 
-namespace tree_lib {
 
-    int height(treeNode* node) {
-        if(node)
-            return node->height;
-        else
-            return 0;
+namespace btree {
+
+    int node_height(Node *node) {
+        return node != nullptr ? node->height : 0;
     }
 
-    int balanceFactor(treeNode* node) {
-        return (height(node->right) - height(node->left));
+    int balanceFactor(Node *node) {
+        return (node_height(node->right) - node_height(node->left));
     }
 
-    void fixheight(treeNode* node) {
-        node->height = std::max(height(node->left), height(node->right)) + 1;
+    void fixheight(Node *node) {
+        node->height = std::max(node_height(node->left), node_height(node->right)) + 1;
     }
 
-    treeNode* rotateRight(treeNode* node) {
-        treeNode* newRoot = node->left;
+    Node *rotateRight(Node *node) {
+        Node *newRoot = node->left;
         node->left = newRoot->right;
         newRoot->right = node;
         fixheight(node);
@@ -30,8 +27,8 @@ namespace tree_lib {
         return newRoot;
     }
 
-    treeNode* rotateLeft(treeNode* node) {
-        treeNode* newRoot = node->right;
+    Node *rotateLeft(Node* node) {
+        Node *newRoot = node->right;
         node->right = newRoot->left;
         newRoot->left = node;
         fixheight(node);
@@ -39,107 +36,133 @@ namespace tree_lib {
         return newRoot;
     }
 
-    treeNode* balance(treeNode* node) {
+    Node *balance(Node *node) {
         fixheight(node);
         if(balanceFactor(node) == 2) {
-            if(balanceFactor(node->right) < 0)
+            if(balanceFactor(node->right) < 0) {
                 node->right = rotateRight(node->right);
+            }
             return rotateLeft(node);
         }
         if(balanceFactor(node) == -2) {
-            if(balanceFactor(node->left) > 0)
+            if(balanceFactor(node->left) > 0) {
                 node->left = rotateLeft(node->left);
+            }
             return rotateRight(node);
         }
         return node;
     }
 
-    treeNode* createTree() {
-        treeNode* newTree = NULL;
-        return newTree;
-    }
-
-    treeNode* createTreeNode(int key) {
-        treeNode* newNode = (treeNode*)malloc(sizeof(treeNode));
+    
+    Node *createTreeNode(int key) {
+        Node *newNode = new Node;
         newNode->key = key;
-        newNode->left = NULL;
-        newNode->right = NULL;
+        newNode->left = nullptr;
+        newNode->right = nullptr;
         newNode->height = 1;
         return newNode;
     }
 
-    treeNode* treeInsert(treeNode* node, int key) {
-        if(!node) {
-            node = createTreeNode(key);
-            return node;
-        }
-        if(key < node->key)
-            node->left = treeInsert(node->left, key);
-        else if(key > node->key)
-            node->right = treeInsert(node->right, key);
-        return balance(node);
-    }
-
-    treeNode* findMin(treeNode* node) {
+    Node *findMin(Node *node) {
         return node->left ? findMin(node->left) : node;
     }
 
-    treeNode* removeMin(treeNode* node) {
-        if(!node->left)
-            return node->right;
+    Node *removeMin(Node *node) {
+        if(node->left == nullptr) return node->right;
         node->left = removeMin(node->left);
         return balance(node);
     }
 
-    treeNode* treeRemove(treeNode* node, int key) {
-        if(!node)
-            return NULL;
-        if(key < node->key)
-            node->left = treeRemove(node->left, key);
-        else if(key > node->key)
-            node->right = treeRemove(node->right, key);
-        else {
-            treeNode* leftNode = node->left;
-            treeNode* rightNode = node->right;
-            delete node;
-            if(!rightNode)
-                return leftNode;
-            treeNode* min = findMin(rightNode);
-            min->right = removeMin(rightNode);
-            min->left = leftNode;
-            return balance(min);
+    Tree::Tree() {
+        root = nullptr;
+    }
+
+    Tree::~Tree() {
+    }
+
+    int Tree::getSize() {
+        return size;
+    }
+
+    int Tree::getHeight() {
+        return node_height(root);
+    }
+
+    Node *_insert(Node *node, int key, int *size) {
+        if(node == nullptr) {
+            node = createTreeNode(key);
+            (*size)++;
+            return node;
         }
+        if(key < node->key) node->left =  _insert(node->left,  key, size);
+        if(key > node->key) node->right = _insert(node->right, key, size);
         return balance(node);
     }
 
-    void _tree_to_vector_(std::vector<int> *vector, treeNode* node) {
-        if(node) {
-            _tree_to_vector_(vector, node->left);
-            vector->push_back(node->key);
-            _tree_to_vector_(vector, node->right);
-        }
+    void Tree::insert(int key) {
+        root = _insert(root, key, &size);
     }
 
-    std::vector<int> *treeToVector(treeNode *tree) {
+    Node *_remove(Node *node, int key, int *size) {
+        if(node == nullptr) return nullptr;
+        if(key == node->key) {
+            Node *leftNode  = node->left;
+            Node *rightNode = node->right;
+            delete node;
+            if(rightNode == nullptr) return leftNode;
+            Node *min = findMin(rightNode);
+            min->right = removeMin(rightNode);
+            min->left = leftNode;
+            (*size)--;
+            return balance(min);
+        }
+        if(key < node->key) node->left =  _remove(node->left,  key, size);
+        if(key > node->key) node->right = _remove(node->right, key, size);
+        return balance(node);
+    }
+
+    void Tree::remove(int key) {
+        root = _remove(root, key, &size);
+    }
+
+    void _remove_one_node(Node *node) {
+        delete node;
+    }
+
+    void _clear(Node *node) {
+        if(node == nullptr) return;
+        _clear(node->left);
+        _clear(node->right);
+        _remove_one_node(node);
+    }
+
+    void Tree::clear() {
+        _clear(root);
+        root = nullptr;
+    }
+
+    void _tree_to_vector(std::vector<int> *vector, Node *node) {
+        if(node == nullptr) return;
+        _tree_to_vector(vector, node->left);
+        vector->push_back(node->key);
+        _tree_to_vector(vector, node->right);
+    }
+
+    std::vector<int> * Tree::toVector() {
         std::vector<int> *vector = new std::vector<int>;
-        _tree_to_vector_(vector, tree);
+        _tree_to_vector(vector, root);
         return vector;
     }
 
-    treeNode* treeFind(treeNode* node, int key) {
-        treeNode* currentNode = node;
-        while(currentNode) {
-            if(key == currentNode->key) {
-                return currentNode;
-            }
-            else if(key > currentNode->key) {
-                currentNode = currentNode->right;
-            }
-            else if(key < currentNode->key) {
-                currentNode = currentNode->left;
-            }
-        }
-        return NULL;
+    Node *_find(Node *node, int key) {
+        if(node == nullptr) return nullptr;
+        if(key == node->key) return node;
+        if(key < node->key) return _find(node->left, key);
+        if(key > node->key) return _find(node->right, key);
+    }
+
+    Node *Tree::find(int key) {
+        return _find(root, key);
     }
 
 }

@@ -3,20 +3,26 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <functional>
 #include "TreeLib/tree.h"
+
+typedef struct _test {
+    std::function<void()> f;
+    std::string name;
+} Test;
 
 void check(bool condition, std::string fail_message) {
     if(condition) {
-        throw std::exception(std::string("FAIL (" + fail_message + ")\n").c_str());
+        throw std::exception(std::string("FAIL (" + fail_message + ")").c_str());
     }
 }
 
-tree_lib::treeNode *read_tree(std::string filename) {
+btree::Tree *read_tree(std::string filename) {
     std::fstream stream(filename);
-    tree_lib::treeNode *tree = tree_lib::createTree();
+    btree::Tree *tree = new btree::Tree();
     int a;
     while(stream >> a) {
-        tree = treeInsert(tree, a);
+        tree->insert(a);
     }
     stream.close();
     return tree;
@@ -39,113 +45,74 @@ void print_vector(std::vector<int> *vector) {
     std::cout << std::endl;
 }
 
-void creation_test() {
-    printf("CREATION TEST: ");
-    tree_lib::treeNode *tree = tree_lib::createTree();
-    try {
-        check(tree != nullptr, "root pointer is not NULL");
-    } catch(std::exception e) {
-        printf(e.what());
-        return;
-    }
-    printf("OK\n");
+void insertion_test() {
+    btree::Tree *tree = read_tree("input.txt");
+    std::vector<int> *tree_vector = tree->toVector();
+    std::vector<int> *sorted_vector = read_vector("sorted.txt");
+    check(*tree_vector != *sorted_vector, "something went wrong");
 }
 
-void insertion_test_1() {
-    printf("INSERTION TEST 1: ");
-    tree_lib::treeNode *tree = tree_lib::createTree();
-    try {
-        tree = treeInsert(tree, 5);
-        tree = treeInsert(tree, 1);
-        tree = treeInsert(tree, 10);
-        check(!tree, "root pointer is NULL");
-        check(!tree->left, "left is NULL");
-        check(!tree->right, "right is NULL");
-        check(tree->key != 5, "key of root is not 5");
-        check(tree->left->key != 1, "key of left is not 1");
-        check(tree->right->key != 10, "key of right is not 10");
-    } catch(std::exception e) {
-        printf(e.what());
-        return;
+void remove_test() {
+    btree::Tree *tree = read_tree("input.txt");
+    std::vector<int> *tree_before_remove = tree->toVector();
+    std::vector<int> *remove_vector = read_vector("remove.txt");
+    for(int number_to_remove : *remove_vector) {
+        tree->remove(number_to_remove);
     }
-    printf("OK\n");
-}
-
-void insertion_test_2() {
-    printf("INSERTION TEST 2: ");
-    try {
-        tree_lib::treeNode *tree = read_tree("input.txt");
-        std::vector<int> *tree_vector =  treeToVector(tree);
-        std::vector<int> *sorted_vector = read_vector("sorted.txt");
-        check(*tree_vector != *sorted_vector, "something went wrong");
-    } catch(std::exception e) {
-        printf(e.what());
-        return;
-    }
-    printf("OK\n");
-}
-
-void remove_test_1() {
-    printf("REMOVE TEST 1: ");
-    tree_lib::treeNode *tree = tree_lib::createTree();
-    try {
-        tree = treeInsert(tree, 5);
-        tree = treeInsert(tree, 1);
-        tree = treeInsert(tree, 10);
-        tree = treeRemove(tree, 5);
-        check(tree->key != 1 && tree->key != 10, "invalid root key");
-    } catch(std::exception e) {
-        printf(e.what());
-        return;
-    }
-    printf("OK\n");
-}
-
-void remove_test_2() {
-    printf("REMOVE TEST 2: ");
-    try {
-        tree_lib::treeNode *tree = read_tree("input.txt");
-        std::vector<int> *tree_before_remove = treeToVector(tree);
-        std::vector<int> *remove_vector = read_vector("remove.txt");
-        for(int number_to_remove : *remove_vector) {
-            tree_lib::treeRemove(tree, number_to_remove);
-        }
-        std::vector<int> *tree_after_remove = treeToVector(tree);
-        std::vector<int> *proper_vector = read_vector("after_remove.txt");
-        check(*tree_after_remove != *proper_vector, "something went wrong");
-    } catch(std::exception e) {
-        printf(e.what());
-        return;
-    }
-    printf("OK\n");
+    std::vector<int> *tree_after_remove = tree->toVector();
+    std::vector<int> *proper_vector = read_vector("after_remove.txt");
+    check(*tree_after_remove != *proper_vector, "something went wrong");
 }
 
 void find_test() {
-    printf("FIND TEST: ");
-    tree_lib::treeNode *tree = tree_lib::createTree();
+    btree::Tree *tree = new btree::Tree();
+    check(tree->find(1) != nullptr, "1 found, but tree is empty");
+    tree->insert(1);
+    check(tree->find(1) == nullptr, "not found 1");
+    check(tree->find(1)->key != 1, "found wrong node");
+    check(tree->find(5) != nullptr, "5 found, but is not there");
+    tree->insert(5);
+    check(tree->find(5) == nullptr, "not found 5");
+}
+
+void clear_test() {
+    btree::Tree *tree = new btree::Tree();
+    tree->clear();
+    check(tree->getHeight() != 0, "empty tree height is not zero");
+    tree = read_tree("input.txt");
+    tree->clear();
+    check(tree->getHeight() != 0, "tree height is not zero");
+}
+
+bool run_test(Test test) {
+    std::cout << test.name << ": ";
     try {
-        check(tree != nullptr, "root pointer is not NULL");
-        tree_lib::treeNode *one = treeFind(tree, 1);
-        check(one != nullptr, "1 found, but tree is empty");
-        tree = treeInsert(tree, 1);
-        one = treeFind(tree, 1);
-        check(!one, "not found 1");
-        check(one->key != 1, "found wrong node");
+        test.f();
     } catch(std::exception e) {
-        printf(e.what());
-        return;
+        std::cout << e.what() << std::endl;
+        return false;
     }
-    printf("OK\n");
+    std::cout << "OK" << std::endl;
+    return true;
 }
 
 int main() {
 
-    creation_test();
-    insertion_test_1();
-    insertion_test_2();
-    find_test();
-    remove_test_1();
-    remove_test_2();
+    Test tests[] = { {find_test, "FIND TEST"},  {insertion_test, "INSERTION TEST"}, {remove_test, "REMOVE TEST"}, {clear_test, "CLEAR_TEST"} };
+
+    int failed_count = 0;
+    for(Test test : tests) {
+        if(!run_test(test)) {
+            failed_count++;
+        }
+    }
+    std::cout << std::endl;
+    if(failed_count > 0) {
+        std::cout << failed_count << " tests failed" << std::endl;
+    } else {
+        std::cout << "All tests passed" << std::endl;
+    }
+    std::cout << std::endl;
 
     return 0;
 

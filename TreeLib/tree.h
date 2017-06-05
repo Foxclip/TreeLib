@@ -1,19 +1,39 @@
 #pragma once
 
-namespace tree_lib {
+namespace btree {
 
-    typedef struct _treeNode {
-        struct _treeNode* left;
-        struct _treeNode* right;
-        int key;
+    typedef struct _node {
         int height;
-    } treeNode;
+        struct _node* left;
+        struct _node* right;
+        int key;
+    } Node;
 
-    int height(treeNode* node);
-    treeNode* createTree();
-    treeNode* treeInsert(treeNode* node, int key);
-    treeNode* treeRemove(treeNode* node, int key);
-    treeNode* treeFind(treeNode* node, int key);
-    std::vector<int> *treeToVector(treeNode* node);
+    class Tree {
+    public:
+        Tree();
+        ~Tree();
+        int getSize();
+        int getHeight();
+        void insert(int key);
+        void remove(int key);
+        void clear();
+        Node *find(int key);
+        std::vector<int> *toVector();
+
+    private:
+        int size;
+        Node *root;
+
+    };
+
+    Node *createTreeNode(int key);
+    int node_height(Node *node);
+    Node *rotateRight(Node *node);
+    Node *rotateLeft(Node *node);
+    void fixheight(Node *node);
+    int balanceFactor(Node *node);
+    Node *findMin(Node *node);
+    Node *removeMin(Node *node);
 
 }
