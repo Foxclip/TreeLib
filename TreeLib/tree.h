@@ -37,3 +37,5 @@ namespace btree {
     Node *removeMin(Node *node);
 
 }
+
+#include "tree.cpp"
