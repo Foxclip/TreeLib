@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <functional>
+#include <memory>
 #include "TreeLib/tree.h"
 
 typedef struct _test {
@@ -17,9 +18,14 @@ void check(bool condition, std::string fail_message) {
     }
 }
 
-btree::Tree<int> *read_tree(std::string filename) {
+typedef btree::Tree<int> TreeInt;
+typedef std::unique_ptr<TreeInt> pTreeInt;
+typedef std::vector<int> VectorInt;
+typedef std::shared_ptr<VectorInt> pVectorInt;
+
+pTreeInt read_tree(std::string filename) {
     std::fstream stream(filename);
-    btree::Tree<int> *tree = new btree::Tree<int>();
+    pTreeInt tree(new TreeInt);
     int a;
     while(stream >> a) {
         tree->insert(a);
@@ -28,9 +34,9 @@ btree::Tree<int> *read_tree(std::string filename) {
     return tree;
 }
 
-std::vector<int> *read_vector(std::string filename) {
+pVectorInt read_vector(std::string filename) {
     std::fstream stream(filename);
-    std::vector<int> *vector = new std::vector<int>;
+    pVectorInt vector(new VectorInt);
     int a;
     while(stream >> a) {
         vector->push_back(a);
@@ -46,21 +52,21 @@ void print_vector(std::vector<int> *vector) {
 }
 
 void insertion_test() {
-    btree::Tree<int> *tree = read_tree("input.txt");
-    std::vector<int> *tree_vector = tree->toVector();
-    std::vector<int> *sorted_vector = read_vector("sorted.txt");
+    pTreeInt tree = read_tree("input.txt");
+    pVectorInt tree_vector = tree->toVector();
+    pVectorInt sorted_vector = read_vector("sorted.txt");
     check(*tree_vector != *sorted_vector, "something went wrong");
 }
 
 void remove_test() {
-    btree::Tree<int> *tree = read_tree("input.txt");
-    std::vector<int> *tree_before_remove = tree->toVector();
-    std::vector<int> *remove_vector = read_vector("remove.txt");
+    pTreeInt tree = read_tree("input.txt");
+    pVectorInt tree_before_remove = tree->toVector();
+    pVectorInt remove_vector = read_vector("remove.txt");
     for(int number_to_remove : *remove_vector) {
         tree->remove(number_to_remove);
     }
-    std::vector<int> *tree_after_remove = tree->toVector();
-    std::vector<int> *proper_vector = read_vector("after_remove.txt");
+    pVectorInt tree_after_remove = tree->toVector();
+    pVectorInt proper_vector = read_vector("after_remove.txt");
     check(*tree_after_remove != *proper_vector, "something went wrong");
 }
 
@@ -76,7 +82,7 @@ void find_test() {
 }
 
 void clear_test() {
-    btree::Tree<int> *tree = new btree::Tree<int>();
+    pTreeInt tree(new btree::Tree<int>());
     tree->clear();
     check(tree->getHeight() != 0, "empty tree height is not zero");
     tree = read_tree("input.txt");
@@ -98,7 +104,7 @@ bool run_test(Test test) {
 
 int main() {
 
-    Test tests[] = { {find_test, "FIND TEST"},  {insertion_test, "INSERTION TEST"}, {remove_test, "REMOVE TEST"}, {clear_test, "CLEAR_TEST"} };
+    Test tests[] = { {find_test, "FIND TEST"},  {insertion_test, "INSERTION TEST"}, {remove_test, "REMOVE TEST"}, {clear_test, "CLEAR TEST"} };
 
     int failed_count = 0;
     for(Test test : tests) {
