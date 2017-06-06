@@ -72,7 +72,7 @@ void remove_test() {
 
 void find_test() {
     btree::Tree<int> *tree = new btree::Tree<int>();
-    check(tree->find(1) != nullptr, "1 found, but tree is empty");
+    check(tree->find(5) != nullptr, "1 found, but tree is empty");
     tree->insert(1);
     check(tree->find(1) == nullptr, "not found 1");
     check(tree->find(1)->key != 1, "found wrong node");
