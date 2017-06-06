@@ -9,12 +9,16 @@
 
 class Word {
 public:
+    Word() {}
     Word(std::string str): data(str) {}
     const bool operator>(const Word& w) const {
         return strcmp(data.c_str(), w.data.c_str()) > 0;
     }
     const bool operator<(const Word& w) const {
         return strcmp(data.c_str(), w.data.c_str()) < 0;
+    }
+    const bool operator==(const Word& w) const {
+        return data == w.data;
     }
     std::string getData() {
         return data;
@@ -24,6 +28,11 @@ private:
     std::string data;
 
 };
+
+typedef btree::Tree<int> TreeInt;
+typedef std::unique_ptr<TreeInt> pTreeInt;
+typedef std::vector<int> VectorInt;
+typedef std::shared_ptr<VectorInt> pVectorInt;
 
 typedef std::shared_ptr<Word> pWord;
 typedef btree::Tree<Word> TreeWrd;
@@ -41,11 +50,6 @@ void check(bool condition, std::string fail_message) {
         throw std::exception(std::string("FAIL (" + fail_message + ")").c_str());
     }
 }
-
-typedef btree::Tree<int> TreeInt;
-typedef std::unique_ptr<TreeInt> pTreeInt;
-typedef std::vector<int> VectorInt;
-typedef std::shared_ptr<VectorInt> pVectorInt;
 
 pTreeInt read_tree_int(std::string filename) {
     std::fstream stream(filename);
@@ -82,7 +86,7 @@ pVectorInt read_vector_int(std::string filename) {
 
 pVectorWrd read_vector_wrd(std::string filename) {
     std::fstream stream(filename);
-    pVectorWrd vector(new pVectorWrd);
+    pVectorWrd vector(new VectorWrd);
     std::string a;
     while(stream >> a) {
         Word w(a);
@@ -91,9 +95,16 @@ pVectorWrd read_vector_wrd(std::string filename) {
     return vector;
 }
 
-void print_vector(std::vector<int> *vector) {
+void print_vector_int(pVectorInt vector) {
     for(int number : *vector) {
         std::cout << number << " ";
+    }
+    std::cout << std::endl;
+}
+
+void print_vector_wrd(pVectorWrd vector) {
+    for(Word wrd : *vector) {
+        std::cout << wrd.getData() << " ";
     }
     std::cout << std::endl;
 }
@@ -108,7 +119,7 @@ void insertion_test_1() {
 void insertion_test_2() {
     pTreeWrd tree = read_tree_wrd("words.txt");
     pVectorWrd tree_vector = tree->toVector();
-    pVectorWrd sorted_vector = read_vector_wrd("sorted.txt");
+    pVectorWrd sorted_vector = read_vector_wrd("words_sorted.txt");
     check(*tree_vector != *sorted_vector, "something went wrong");
 }
 
@@ -158,7 +169,12 @@ bool run_test(Test test) {
 
 int main() {
 
-    Test tests[] = { {find_test, "FIND TEST"},  {insertion_test_1, "INSERTION TEST"}, {remove_test, "REMOVE TEST"}, {clear_test, "CLEAR TEST"} };
+    Test tests[] = {
+        {find_test,        "FIND TEST"},
+        {insertion_test_1, "INSERTION TEST 1"},
+        {insertion_test_2, "INSERTION TEST 2"},
+        {remove_test,      "REMOVE TEST"},
+        {clear_test,       "CLEAR TEST"} };
 
     int failed_count = 0;
     for(Test test : tests) {
