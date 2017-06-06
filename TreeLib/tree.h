@@ -9,17 +9,17 @@ namespace btree {
         int key;
     } Node;
 
-    class Tree {
+    template<typename T> class Tree {
     public:
         Tree();
         ~Tree();
         int getSize();
         int getHeight();
-        void insert(int key);
-        void remove(int key);
+        void insert(T key);
+        void remove(T key);
         void clear();
-        Node *find(int key);
-        std::vector<int> *toVector();
+        Node *find(T key);
+        std::vector<T> *toVector();
 
     private:
         int size;
@@ -27,7 +27,7 @@ namespace btree {
 
     };
 
-    Node *createTreeNode(int key);
+    template<typename T> Node *createTreeNode(T key);
     int node_height(Node *node);
     Node *rotateRight(Node *node);
     Node *rotateLeft(Node *node);

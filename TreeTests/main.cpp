@@ -17,9 +17,9 @@ void check(bool condition, std::string fail_message) {
     }
 }
 
-btree::Tree *read_tree(std::string filename) {
+btree::Tree<int> *read_tree(std::string filename) {
     std::fstream stream(filename);
-    btree::Tree *tree = new btree::Tree();
+    btree::Tree<int> *tree = new btree::Tree<int>();
     int a;
     while(stream >> a) {
         tree->insert(a);
@@ -46,14 +46,14 @@ void print_vector(std::vector<int> *vector) {
 }
 
 void insertion_test() {
-    btree::Tree *tree = read_tree("input.txt");
+    btree::Tree<int> *tree = read_tree("input.txt");
     std::vector<int> *tree_vector = tree->toVector();
     std::vector<int> *sorted_vector = read_vector("sorted.txt");
     check(*tree_vector != *sorted_vector, "something went wrong");
 }
 
 void remove_test() {
-    btree::Tree *tree = read_tree("input.txt");
+    btree::Tree<int> *tree = read_tree("input.txt");
     std::vector<int> *tree_before_remove = tree->toVector();
     std::vector<int> *remove_vector = read_vector("remove.txt");
     for(int number_to_remove : *remove_vector) {
@@ -65,7 +65,7 @@ void remove_test() {
 }
 
 void find_test() {
-    btree::Tree *tree = new btree::Tree();
+    btree::Tree<int> *tree = new btree::Tree<int>();
     check(tree->find(1) != nullptr, "1 found, but tree is empty");
     tree->insert(1);
     check(tree->find(1) == nullptr, "not found 1");
@@ -76,7 +76,7 @@ void find_test() {
 }
 
 void clear_test() {
-    btree::Tree *tree = new btree::Tree();
+    btree::Tree<int> *tree = new btree::Tree<int>();
     tree->clear();
     check(tree->getHeight() != 0, "empty tree height is not zero");
     tree = read_tree("input.txt");

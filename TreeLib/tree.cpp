@@ -54,7 +54,7 @@ namespace btree {
     }
 
     
-    Node *createTreeNode(int key) {
+    template<typename T> Node *createTreeNode(T key) {
         Node *newNode = new Node;
         newNode->key = key;
         newNode->left = nullptr;
@@ -73,22 +73,23 @@ namespace btree {
         return balance(node);
     }
 
-    Tree::Tree() {
+    template<typename T> Tree<T>::Tree() {
         root = nullptr;
     }
 
-    Tree::~Tree() {
+    template<typename T> Tree<T>::~Tree() {
+        clear();
     }
 
-    int Tree::getSize() {
+    template<typename T> int Tree<T>::getSize() {
         return size;
     }
 
-    int Tree::getHeight() {
+    template<typename T> int Tree<T>::getHeight() {
         return node_height(root);
     }
 
-    Node *_insert(Node *node, int key, int *size) {
+    template<typename T> Node *_insert(Node *node, T key, int *size) {
         if(node == nullptr) {
             node = createTreeNode(key);
             (*size)++;
@@ -99,11 +100,11 @@ namespace btree {
         return balance(node);
     }
 
-    void Tree::insert(int key) {
+    template<typename T> void Tree<T>::insert(T key) {
         root = _insert(root, key, &size);
     }
 
-    Node *_remove(Node *node, int key, int *size) {
+    template<typename T> Node *_remove(Node *node, T key, int *size) {
         if(node == nullptr) return nullptr;
         if(key == node->key) {
             Node *leftNode  = node->left;
@@ -121,7 +122,7 @@ namespace btree {
         return balance(node);
     }
 
-    void Tree::remove(int key) {
+    template<typename T> void Tree<T>::remove(T key) {
         root = _remove(root, key, &size);
     }
 
@@ -136,32 +137,32 @@ namespace btree {
         _remove_one_node(node);
     }
 
-    void Tree::clear() {
+    template<typename T> void Tree<T>::clear() {
         _clear(root);
         root = nullptr;
     }
 
-    void _tree_to_vector(std::vector<int> *vector, Node *node) {
+    template<typename T> void _tree_to_vector(std::vector<T> *vector, Node *node) {
         if(node == nullptr) return;
         _tree_to_vector(vector, node->left);
         vector->push_back(node->key);
         _tree_to_vector(vector, node->right);
     }
 
-    std::vector<int> * Tree::toVector() {
-        std::vector<int> *vector = new std::vector<int>;
+    template<typename T> std::vector<T> *Tree<T>::toVector() {
+        std::vector<T> *vector = new std::vector<T>;
         _tree_to_vector(vector, root);
         return vector;
     }
 
-    Node *_find(Node *node, int key) {
+    template<typename T> Node *_find(Node *node, T key) {
         if(node == nullptr) return nullptr;
         if(key == node->key) return node;
         if(key < node->key) return _find(node->left, key);
         if(key > node->key) return _find(node->right, key);
     }
 
-    Node *Tree::find(int key) {
+    template<typename T> Node *Tree<T>::find(T key) {
         return _find(root, key);
     }
 
