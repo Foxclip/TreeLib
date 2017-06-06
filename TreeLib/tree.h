@@ -12,7 +12,7 @@
 
 namespace btree {
 
-    template<typename T = int> struct Node {
+    template<typename T> struct Node {
         int height;
         pNode left;
         pNode right;
@@ -37,7 +37,7 @@ namespace btree {
 
     };
 
-    template<typename T> pNode createTreeNode(T& key);
+    template<typename T> pNode createTreeNode(const T& key);
     template<typename T> int node_height(pNode node);
     template<typename T> pNode rotateRight(pNode node);
     template<typename T> pNode rotateLeft(pNode node);
